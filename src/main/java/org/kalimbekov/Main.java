@@ -25,8 +25,9 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         try (
-                Scanner scannerFile = new Scanner(new File("credentials"));
-                Scanner scannerSysIn = new Scanner(System.in)) {
+                Scanner scannerFile = new Scanner(new File("data/credentials"));
+                Scanner scannerSysIn = new Scanner(System.in)
+        ) {
             String sender_address = scannerFile.nextLine();
             String sender_password = scannerFile.nextLine();
 
@@ -55,17 +56,22 @@ public class Main {
             // Attach a file
             String[] filePaths = {
                     "assets/cat.jpg",
-                    "src/main/java/org/kalimbekov/Main.java"};
-            for (String filePath : filePaths) {
+                    "src/main/java/org/kalimbekov/Main.java"
+            };
+            for (String filePath : filePaths)
                 addAttachment(multipart, filePath);
-            }
 
-            // FIXME: Email currently contains NO TEXT
+            MimeBodyPart mimeBodyPart = new MimeBodyPart();
+            mimeBodyPart.setText(
+                    currentDate + "\n" + weatherInfo,
+                    "utf-8"
+            );
+            multipart.addBodyPart(mimeBodyPart);
+
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(sender_address));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(receiver_address));
             message.setSubject("09-152, Алимбеков Камиль Риясович");
-            message.setText(currentDate + "\n" + weatherInfo);
             message.setContent(multipart);
 
             Transport.send(message);
@@ -89,15 +95,18 @@ public class Main {
 
     private static void addAttachment(Multipart multipart, String filePath)
             throws MessagingException {
-        BodyPart attachmentBodyPart = new MimeBodyPart();
         DataSource source = new FileDataSource(filePath);
+
+        BodyPart attachmentBodyPart = new MimeBodyPart();
         attachmentBodyPart.setDataHandler(new DataHandler(source));
         attachmentBodyPart.setFileName(source.getName());
+
         multipart.addBodyPart(attachmentBodyPart);
     }
 
     public static String getWeatherInfo()
             throws IOException {
+        // TODO:
         // It is a TERRIBLE idea to store API keys
         // and other sensitive data directly in a
         // source code, but I will keep it like
